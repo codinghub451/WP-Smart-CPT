@@ -27,12 +27,12 @@ function cpt_settings_menu()
 {
 
     add_menu_page(
-        'Smart CPT',
-        'Smart CPT',
+        'CPT Generator',
+        'CPT Generator',
         'edit_posts',
         'wp-smart-cpt',
         'register_custom_menu',
-        'dashicons-media-spreadsheet'
+        'dashicons-book-alt'
 
     );
 }

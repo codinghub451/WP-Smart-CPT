@@ -1,11 +1,20 @@
 <?php
 
+// Load Scripts and Stylings
+
+function posts_style()
+{
+    wp_enqueue_style('smart-styling', plugins_url('/assets/css/posts-style.css', __DIR__));
+}
+add_action('wp_enqueue_scripts', 'posts_style');
+
 // Save the custom post type information in the database when an AJAX call is made
 
 function create_smart_cpt_handler()
 {
     $cpt_name = $_POST['cpt_name'];
     $singular_name = $_POST['singular_name'];
+    $cpt_description = $_POST['cpt_description'];
     $cpt_name_register = $_POST['cpt_regirter_name'];
     $cpt_menu_icon = $_POST['cpt_icon'];
 
@@ -24,7 +33,7 @@ function create_smart_cpt_handler()
     );
     $cpt_args = array(
         'labels'            => $cpt_labels,
-        'description'       => 'Smart CPT with Smart options',
+        'description'       => $cpt_description,
         'public'            => true,
         'menu_position'     => 5,
         'supports'          => array('title', 'editor', 'thumbnail', 'excerpt', 'comments', 'custom-fields'),
@@ -37,7 +46,9 @@ function create_smart_cpt_handler()
     );
     $custom_post_types = get_option('custom_post_types', array());
     $custom_post_types[$cpt_name_register] = $cpt_args;
-    update_option('custom_post_types', $custom_post_types);
+    if (update_option('custom_post_types', $custom_post_types)) {
+        echo $cpt_name." CPT Create Successfully!";
+    }
     wp_die(); // This is necessary to terminate the AJAX request properly
 }
 add_action('wp_ajax_create_smart_cpt', 'create_smart_cpt_handler');
@@ -86,7 +97,7 @@ function display_custom_post_types()
     $custom_post_types = get_option('custom_post_types', array());
 
     echo '<table>';
-    echo '<tr><th>Name</th><th>Post Count</th><th>Categories</th><th>Action</th></tr>';
+    echo '<tr><th>Name</th><th>Post Count</th><th>Categories</th><th>Shortcode</th><th>Action</th></tr>';
 
     foreach ($custom_post_types as $cpt_name => $cpt_data) {
         $args = array(
@@ -97,10 +108,10 @@ function display_custom_post_types()
         );
         $query = new WP_Query($args);
         $post_count = $query->found_posts;
+        $cptName = ucwords(str_replace('-', ' ', $cpt_name));
 
-        $category_count = wp_count_terms($cpt_data['taxonomies']);
         echo '<tr>';
-        echo '<td>' . $cpt_name . '</td>';
+        echo '<td>' . $cptName . '</td>';
         echo '<td>' . $post_count . '</td><td>';
         // Get all posts for the custom post type
         $args = array(
@@ -124,6 +135,8 @@ function display_custom_post_types()
             echo $category_name . '<br>';
         }
         '</td>';
+        $shortcodename = preg_replace('/\s+/', '_', $cpt_name);
+        echo '<td>' . $shortcodename . '-cpts</td>';
         echo '<td><a class="delete-cpt" data-cpt="' . $cpt_name . '">Delete</a></td>';
         echo '</tr>';
     }
@@ -145,3 +158,11 @@ function delete_custom_post_type()
     wp_send_json_success('Custom Post Type has been deleted successfully');
 }
 add_action('wp_ajax_delete_custom_post_type', 'delete_custom_post_type');
+
+// Display CPTs Posts with Shortcode
+
+function register_cpt_shortcodes()
+{
+    require_once(plugin_dir_path(__FILE__) . '/cpt-shortcode-template.php');
+}
+add_action('init', 'register_cpt_shortcodes');

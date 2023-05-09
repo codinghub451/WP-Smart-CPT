@@ -5,13 +5,11 @@ jQuery(document).ready(function ($) {
     $("#create-cpt").on('click', function (e) {
         // if (e.which == 13) {
         e.preventDefault();
-        var cpt_name = $("#cpt-name").val();
-        var singular_name = cpt_name.slice(0, -1);
+        var cpt_name = $("#cpt-pname").val();
+        var singular_name = $("#cpt-sname").val();
+        var cpt_description = $("#cpt-description").val();
         var selectedIcon = $("#selected-dashicon span").attr('class').split(' ')[1];
         var cpt_regirter_name = cpt_name.toLowerCase().replace(" ", "-");
-        console.log(cpt_name);
-        console.log(cpt_regirter_name);
-        console.log(selectedIcon);
         jQuery.ajax({
             url: ajax_object.ajax_url,
             type: 'POST',
@@ -19,15 +17,16 @@ jQuery(document).ready(function ($) {
                 action: 'create_smart_cpt',
                 cpt_name: cpt_name,
                 singular_name: singular_name,
+                cpt_description: cpt_description,
                 cpt_regirter_name: cpt_regirter_name,
                 cpt_icon: selectedIcon,
             },
             success: function (response) {
                 /* Handling response from server */
-
                 if (response) {
                     console.log(response);
-                    // location.reload();
+                    $("#success-message").html(response);
+                    location.reload();
                 }
             },
             error: function (xhr, status, error) {
@@ -39,6 +38,7 @@ jQuery(document).ready(function ($) {
 
     jQuery('#dashicons-select').on('change', function () {
         var icon = jQuery(this).val();
+        $("#selected-dashicon b").show();
         jQuery('#selected-dashicon p').html('<span class="dashicons ' + icon + '"></span>');
     });
 
