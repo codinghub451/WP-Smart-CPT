@@ -67,7 +67,6 @@ add_action('init', 'register_custom_post_types');
 
 // Delete CPT through AJAX
 
-// Delete CPT through AJAX
 function delete_cpt()
 {
     if (!current_user_can('manage_options')) {

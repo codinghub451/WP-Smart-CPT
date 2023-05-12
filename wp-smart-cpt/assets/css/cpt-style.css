@@ -10,6 +10,43 @@
   margin-top: 3%;
 }
 
+.cpt-banner {
+  width: 99%;
+  margin: auto;
+  padding-top: 5%;
+}
+
+.cpt-banner img {
+  width: 100%;
+}
+
+.heading-sec {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Define the animation */
+@keyframes marquee {
+  0% {
+    transform: translateX(100%);
+  }
+
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+/* Apply the animation to the content */
+.heading-sec p {
+  display: inline-block;
+  animation: marquee 10s linear infinite;
+  font-size: 20px;
+  margin: 0;
+  color: #000;
+  font-style: italic;
+  font-weight: bold;
+}
+
 /* Tabs */
 .cpt-tabs {
   background-color: #525677;
@@ -108,10 +145,16 @@ th {
 select {
   height: 40px;
   font-size: 16px;
+  border: none;
+  border-bottom: 1px solid;
+  border-radius: 0;
 }
 
 textarea {
   font-size: 16px;
+  border: none;
+  border-bottom: 1px solid;
+  border-radius: 0;
 }
 
 select {

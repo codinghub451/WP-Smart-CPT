@@ -41,9 +41,3 @@ function register_custom_menu()
     require_once(plugin_dir_path(__DIR__) . 'src/cpt-settings.php');
 }
 add_action('admin_menu', 'cpt_settings_menu');
-
-function delete_post_type()
-{
-    unregister_post_type('job-titles');
-}
-add_action('init', 'delete_post_type', 100);
