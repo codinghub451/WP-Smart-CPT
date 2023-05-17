@@ -1,98 +1,85 @@
-<h2>Website creation date:</h2> <?php echo mysql2date('l, F j, Y', get_user_option('user_registered', 1)); ?>
-<?php $theme = wp_get_theme();
-if ($theme->exists()) { ?>
-    <table>
-        <h2>Active Theme Information:</h2>
-        <tr>
-            <th>Theme Name</th>
-            <th>Theme Text Domain</th>
-            <th>Theme Url</th>
-        </tr>
-        <tr>
-            <td><?php echo $theme->get('Name'); ?></td>
-            <td><?php echo $theme->get('TextDomain'); ?></td>
-            <td><?php echo $theme->get('ThemeURI'); ?></td>
-        </tr>
-    </table>
 <?php
+if (!current_user_can('manage_options')) {
+    wp_send_json_error('You do not have sufficient permissions to access this page.');
 }
-$wp_roles = wp_roles();
-$result   = count_users();
-?>
-<h2>Users:</h2>
-<table>
-    <tr>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Role</th>
-    </tr>
-    <?php
-    foreach ($result['avail_roles'] as $role => $count) {
-        if (0 == $count)
-            continue; //pass role none
 
-        $args = array(
-            'role' => $role
-        );
+$custom_post_types = get_option('custom_post_types', array());
+$total_cpts = count($custom_post_types);
 
-        $users = get_users($args);
-    ?>
-        <tr>
-            <td><?php
-                foreach ($users as $user) {
-                    echo esc_html($user->display_name);
-                }
-                ?></td>
-            <td><?php echo $user->user_email; ?></td>
-            <td><?php echo $wp_roles->role_names[$role]; ?></td>
-        </tr>
-    <?php
-    }
-    ?>
-</table>
-<?php
+$total_posts = 0;
+$category_counts = array();
+$user_post_counts = array();
 
-function shapeSpace_active_site_plugins()
-{
-    echo "<h2>Active Plugins:</h2>";
-    $plugins = get_option('active_plugins');
+foreach ($custom_post_types as $cpt_name => $cpt_data) {
+    $args = array(
+        'post_type' => $cpt_name,
+        'post_status' => 'publish',
+        'posts_per_page' => -1
+    );
+    $query = new WP_Query($args);
+    $post_count = $query->found_posts;
+    $total_posts += $post_count;
 
-    if ($plugins) {
-        echo '<table>
-                <tr>
-                    <th>Plugin Name</th>
-                    <th>Plugin Author</th>
-                </tr>';
-        foreach ($plugins as $plugin) {
-            $plugin_data = get_plugin_data(WP_PLUGIN_DIR . '/' . $plugin);
+    $args = array(
+        'post_type' => $cpt_name,
+        'posts_per_page' => -1,
+    );
+    $posts = get_posts($args);
 
-            echo '<tr>
-                    <td>' . esc_html($plugin_data['Name']) . '</td>
-                    <td>' . $plugin_data['Author'] . '</td>
-                </tr>';
+    foreach ($posts as $post) {
+        $post_categories = wp_get_post_categories($post->ID);
+        foreach ($post_categories as $category_id) {
+            $category = get_category($category_id);
+            if (isset($category_counts[$category->name])) {
+                $category_counts[$category->name] += 1;
+            } else {
+                $category_counts[$category->name] = 1;
+            }
         }
-        echo '</table>';
+
+        $post_author = get_userdata($post->post_author);
+        $author_name = $post_author->display_name;
+        if (isset($user_post_counts[$author_name][$cpt_name])) {
+            $user_post_counts[$author_name][$cpt_name] += 1;
+        } else {
+            $user_post_counts[$author_name][$cpt_name] = 1;
+        }
     }
 }
-shapeSpace_active_site_plugins();
 
-$count = wp_count_comments();
-echo "<h2>Comments:</h2>";
-echo '<table>
-                <tr>
-                <th>Comments in moderation</th>
-                <th>Comments approved</th>
-                <th>Comments in Spam</th>
-                <th>Comments in Trash</th>
-                <th>Total Comments</th>
-                </tr>';
-echo '<tr>
-                <td>' . $count->moderated      . '</td>
-                <td>' . $count->approved       . '</td>
-                <td>' . $count->spam           . '</td>
-                <td>' . $count->trash          . '</td>
-                <td>' . $count->total_comments . '</td>
-                </tr>';
-echo '</table>';
+echo '<h2>Plugin Statistics</h2>';
+echo '<p>Total Custom Post Types: ' . $total_cpts . '</p>';
+echo '<p>Total Posts: ' . $total_posts . '</p>';
 
-?>
+if (!empty($category_counts)) {
+    echo '<h3>Category Statistics</h3>';
+    echo '<ul>';
+    foreach ($category_counts as $category_name => $category_count) {
+        echo '<li>' . $category_name . ': ' . $category_count . '</li>';
+    }
+    echo '</ul>';
+} else {
+    echo '<p>No categories found.</p>';
+}
+
+if (!empty($user_post_counts)) {
+    echo '<h3>User Post Counts</h3>';
+    echo '<table>';
+    echo '<tr>
+            <th>User</th>
+            <th>Custom Post Type</th>
+            <th>Post Count</th>
+        </tr>';
+    foreach ($user_post_counts as $author_name => $cpt_counts) {
+        foreach ($cpt_counts as $cpt_name => $count) {
+            echo '<tr>';
+            echo '<td>' . $author_name . '</td>';
+            echo '<td>' . $cpt_name . '</td>';
+            echo '<td>' . $count . '</td>';
+            echo '</tr>';
+        }
+    }
+    echo '</table>';
+} else {
+    echo '<p>No user post counts found.</p>';
+}

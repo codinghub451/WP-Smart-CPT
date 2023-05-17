@@ -1,7 +1,7 @@
 <?php
 /*
  * Plugin Name:       Smart CPT
- * Plugin URI:        https://infinitysolutionz.com/
+ * Plugin URI:        https://infinitysolutionz.com/plugins
  * Description:       WP Smart CPT Generator is a WordPress plugin that allows users to easily create custom post types (CPTs) and manage their information through an intuitive admin dashboard.
  * Version:           1.0.0
  * Requires at least: 5.2
